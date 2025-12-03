@@ -26,6 +26,24 @@ func NewScoreHandler(c ScoreCalculator) *ScoreHandler {
 	}
 }
 
+// Handle handles POST /scores/calculate?user_id=<id>.
+//
+// swagger:route POST /scores/calculate scores calculateScore
+//
+// Calculate user score based on stored actions
+//
+//	Parameters:
+//	  + name: user_id
+//	    in: query
+//	    description: The ID of the user to calculate score for
+//	    required: true
+//	    type: string
+//
+//	Responses:
+//	  200: scoreResponse
+//	  400: errorResponse
+//	  404: errorResponse
+//	  500: errorResponse
 func (h *ScoreHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
