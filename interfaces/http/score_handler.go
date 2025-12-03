@@ -2,48 +2,60 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
+	"scoreapp/interfaces/http/models"
 	"scoreapp/usecase"
 )
 
+// ScoreCalculator defines the interface for score calculation.
+type ScoreCalculator interface {
+	Calculate(userID string) (int, error)
+}
+
 // ScoreHandler exposes HTTP endpoints for score calculation.
 type ScoreHandler struct {
-	calculator *usecase.ScoreCalculator
+	calculator ScoreCalculator
 }
 
 // NewScoreHandler creates a new ScoreHandler.
-func NewScoreHandler(c *usecase.ScoreCalculator) *ScoreHandler {
+func NewScoreHandler(c ScoreCalculator) *ScoreHandler {
 	return &ScoreHandler{
 		calculator: c,
 	}
 }
 
-// CalculateScore handles POST /scores/calculate?user_id=<id>.
-//
-// TODO (candidate):
-//   - Keep handler thin (no business logic here).
-//   - Validate input.
-//   - Call calculator.Calculate.
-//   - Return appropriate HTTP status codes.
-func (h *ScoreHandler) CalculateScore(w http.ResponseWriter, r *http.Request) {
+func (h *ScoreHandler) Handle(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(models.ErrorResponse{Error: "method not allowed"})
 		return
 	}
 
 	userID := r.URL.Query().Get("user_id")
 	if userID == "" {
-		http.Error(w, "user_id is required", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(models.ErrorResponse{Error: "user_id is required"})
 		return
 	}
 
-	if err := h.calculator.Calculate(userID); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	score, err := h.calculator.Calculate(userID)
+	if err != nil {
+		// Check if the error is user not found
+		if errors.Is(err, usecase.ErrUserNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			_ = json.NewEncoder(w).Encode(models.ErrorResponse{Error: "user not found"})
+			return
+		}
+		// Other errors are internal server errors
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(models.ErrorResponse{Error: err.Error()})
 		return
 	}
 
-	resp := map[string]string{"status": "ok"}
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(resp)
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(models.ScoreResponse{UserID: userID, Score: score})
 }

@@ -7,10 +7,6 @@ import (
 )
 
 // MemoryRepository is a simple in-memory example implementation of ScoreRepository.
-//
-// TODO (candidate):
-//   - Ensure this satisfies usecase.ScoreRepository.
-//   - Optionally add helper methods for tests (e.g. Get).
 type MemoryRepository struct {
 	mu    sync.Mutex
 	store map[string]domain.UserScore
@@ -24,10 +20,19 @@ func NewMemoryRepository() *MemoryRepository {
 }
 
 // Save stores or updates the score for a given user.
-//
-// TODO (candidate):
-//   - Implement this so that it writes to the in-memory map.
 func (r *MemoryRepository) Save(score domain.UserScore) error {
-	// TODO: implement
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.store[score.UserID] = score
 	return nil
+}
+
+// Get retrieves a score for a given user.
+func (r *MemoryRepository) Get(userID string) (domain.UserScore, bool) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	score, exists := r.store[userID]
+	return score, exists
 }

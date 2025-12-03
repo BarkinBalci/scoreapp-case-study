@@ -1,38 +1,79 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
+	"scoreapp/config"
 	"scoreapp/domain"
 	"scoreapp/infrastructure/repository"
 	httpiface "scoreapp/interfaces/http"
 	"scoreapp/usecase"
 )
 
-// DummyActionService is a basic example implementation of ActionService.
-//
-// TODO (candidate):
-//   - You can keep this simple and in-memory,
-//     or replace it with a more realistic implementation.
+// DummyActionService provides test data based on user ID patterns.
 type DummyActionService struct{}
 
 func (d *DummyActionService) GetActions(userID string) ([]domain.UserAction, error) {
-	// TODO (candidate): return meaningful test data based on userID.
-	return nil, nil
+	switch userID {
+	case "user_beginner":
+		return []domain.UserAction{
+			{Type: "login", Amount: 1},
+			{Type: "challenge_completed", Amount: 0},
+			{Type: "quiz_answer", Amount: 0},
+		}, nil
+
+	case "user_active":
+		return []domain.UserAction{
+			{Type: "login", Amount: 1},
+			{Type: "challenge_completed", Amount: 2},
+			{Type: "quiz_answer", Amount: 3},
+		}, nil
+
+	case "user_power":
+		return []domain.UserAction{
+			{Type: "login", Amount: 0},
+			{Type: "challenge_completed", Amount: 10},
+			{Type: "quiz_answer", Amount: 25},
+		}, nil
+
+	case "user_empty":
+		return []domain.UserAction{}, nil
+
+	case "user_error":
+		return nil, fmt.Errorf("simulated service error")
+
+	default:
+		return nil, usecase.ErrUserNotFound
+	}
 }
 
 func main() {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	// Initialize the repository based on configuration
 	repo := repository.NewMemoryRepository()
+
+	// Initialize services
 	actionService := &DummyActionService{}
-
 	calculator := usecase.NewScoreCalculator(actionService, repo)
-	handler := httpiface.NewScoreHandler(calculator)
 
-	http.HandleFunc("/scores/calculate", handler.CalculateScore)
+	// Initialize handlers
+	scoreHandler := httpiface.NewScoreHandler(calculator)
 
-	log.Println("Listening on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	// Register routes
+	http.HandleFunc("/scores/calculate", scoreHandler.Handle)
+
+	// Start server
+	addr := ":" + cfg.Server.Port
+	log.Printf("Starting server on %s", addr)
+
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		log.Fatal(err)
 	}
 }
