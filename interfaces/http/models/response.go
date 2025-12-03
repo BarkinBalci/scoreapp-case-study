@@ -10,3 +10,8 @@ type ScoreResponse struct {
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
+
+// HealthResponse represents the response for health check endpoints.
+type HealthResponse struct {
+	Status string `json:"status"`
+}

@@ -10,6 +10,14 @@ definitions:
         title: ErrorResponse represents the response for error cases.
         type: object
         x-go-package: scoreapp/interfaces/http/models
+    HealthResponse:
+        properties:
+            status:
+                type: string
+                x-go-name: Status
+        title: HealthResponse represents the response for health check endpoints.
+        type: object
+        x-go-package: scoreapp/interfaces/http/models
     ScoreResponse:
         properties:
             score:
@@ -28,6 +36,19 @@ info:
     title: scoreapp API
     version: 1.0.0
 paths:
+    /health:
+        get:
+            description: Get application health status
+            operationId: getHealth
+            responses:
+                "200":
+                    $ref: '#/responses/healthResponse'
+                "405":
+                    $ref: '#/responses/errorResponse'
+                "500":
+                    $ref: '#/responses/errorResponse'
+            tags:
+                - health
     /scores/calculate:
         post:
             description: Calculate user score based on stored actions
@@ -56,6 +77,10 @@ responses:
         description: ""
         schema:
             $ref: '#/definitions/ErrorResponse'
+    healthResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/HealthResponse'
     scoreResponse:
         description: ""
         schema:

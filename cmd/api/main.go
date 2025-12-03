@@ -63,11 +63,16 @@ func main() {
 	actionService := &DummyActionService{}
 	calculator := usecase.NewScoreCalculator(actionService, repo)
 
+	// Initialize health checker
+	healthChecker := usecase.NewHealthChecker()
+
 	// Initialize handlers
 	scoreHandler := httpiface.NewScoreHandler(calculator)
+	healthHandler := httpiface.NewHealthHandler(healthChecker)
 
 	// Register routes
 	http.HandleFunc("/scores/calculate", scoreHandler.Handle)
+	http.HandleFunc("/health", healthHandler.Handle)
 
 	// Start server
 	addr := ":" + cfg.Server.Port
