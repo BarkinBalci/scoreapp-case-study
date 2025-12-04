@@ -1,10 +1,23 @@
 # scoreapp
 
-A user score calculation service.
+A user score calculation service built with Go, featuring clean architecture and automated CI/CD deployment.
 
 [![CI](https://github.com/BarkinBalci/scoreapp-case-study/actions/workflows/ci.yml/badge.svg)](https://github.com/BarkinBalci/scoreapp-case-study/actions/workflows/ci.yml)
 [![CD](https://github.com/BarkinBalci/scoreapp-case-study/actions/workflows/cd.yml/badge.svg)](https://github.com/BarkinBalci/scoreapp-case-study/actions/workflows/cd.yml)
 ![Go](https://img.shields.io/badge/Go-1.25.4-00ADD8?logo=go)
+
+## Live Demo
+ **Production:** [https://scoreapp.barkin.dev](https://scoreapp.barkin.dev)
+
+Try the API:
+```bash
+# Health check
+curl https://scoreapp.barkin.dev/health
+```
+```bash
+# Calculate score
+curl -X POST https://scoreapp.barkin.dev/scores/calculate?user_id=user_active
+```
 
 ## Prerequisites
 
