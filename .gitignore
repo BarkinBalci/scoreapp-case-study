@@ -1,2 +1,6 @@
 .env
 .idea
+/vendor/
+/bin/
+/cover.html
+/cover.out

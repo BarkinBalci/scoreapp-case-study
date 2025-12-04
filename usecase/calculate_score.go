@@ -1,31 +1,26 @@
 package usecase
 
-import "scoreapp/domain"
+import (
+	"errors"
+	"fmt"
+
+	"scoreapp/domain"
+)
+
+// ErrUserNotFound is returned when a user is not found.
+var ErrUserNotFound = errors.New("user not found")
 
 // ActionService abstracts an external system that returns user actions.
-//
-// TODO (candidate):
-//   - Implement a concrete ActionService (can be dummy / in-memory or an HTTP client).
 type ActionService interface {
 	GetActions(userID string) ([]domain.UserAction, error)
 }
 
 // ScoreRepository abstracts where we persist the calculated score.
-//
-// TODO (candidate):
-//   - Implement one or more concrete repositories (e.g., in-memory, DB-backed).
 type ScoreRepository interface {
 	Save(score domain.UserScore) error
 }
 
 // ScoreCalculator contains the business logic to calculate and persist scores.
-//
-// TODO (candidate):
-//   - Implement scoring rules:
-//     login               -> +1
-//     challenge_completed -> +10 * Amount
-//     quiz_answer         -> +2 * Amount
-//   - Consider making the rules easy to extend.
 type ScoreCalculator struct {
 	actionService ActionService
 	repo          ScoreRepository
@@ -39,14 +34,43 @@ func NewScoreCalculator(a ActionService, r ScoreRepository) *ScoreCalculator {
 	}
 }
 
-// Calculate loads user actions, computes a score, and persists the result.
-//
-// TODO (candidate):
-//   - Fetch actions via ActionService.
-//   - Apply scoring rules.
-//   - Call ScoreRepository.Save with the calculated UserScore.
-//   - Return appropriate errors.
-func (c *ScoreCalculator) Calculate(userID string) error {
-	// TODO: implement
-	return nil
+// Calculate loads user actions and calculates a score
+func (c *ScoreCalculator) Calculate(userID string) (int, error) {
+	// Fetch actions from ActionService
+	actions, err := c.actionService.GetActions(userID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get actions: %w", err)
+	}
+
+	// Calculate score based on rules
+	score := 0
+	for _, action := range actions {
+		if action.Amount <= 0 {
+			continue
+		}
+
+		switch action.Type {
+		case "login":
+			score += 1
+		case "challenge_completed":
+			score += 10 * action.Amount
+		case "quiz_answer":
+			score += 2 * action.Amount
+		default:
+			continue
+		}
+	}
+
+	// Create UserScore domain object
+	userScore := domain.UserScore{
+		UserID: userID,
+		Score:  score,
+	}
+
+	// Save via repository
+	if err := c.repo.Save(userScore); err != nil {
+		return 0, fmt.Errorf("failed to save score: %w", err)
+	}
+
+	return score, nil
 }

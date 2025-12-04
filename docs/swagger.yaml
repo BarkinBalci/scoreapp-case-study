@@ -1,0 +1,91 @@
+basePath: /
+consumes:
+    - application/json
+definitions:
+    ErrorResponse:
+        properties:
+            error:
+                type: string
+                x-go-name: Error
+        title: ErrorResponse represents the response for error cases.
+        type: object
+        x-go-package: scoreapp/interfaces/http/models
+    HealthResponse:
+        properties:
+            status:
+                type: string
+                x-go-name: Status
+        title: HealthResponse represents the response for health check endpoints.
+        type: object
+        x-go-package: scoreapp/interfaces/http/models
+    ScoreResponse:
+        properties:
+            score:
+                format: int64
+                type: integer
+                x-go-name: Score
+            user_id:
+                type: string
+                x-go-name: UserID
+        title: ScoreResponse represents the response for score calculation endpoints.
+        type: object
+        x-go-package: scoreapp/interfaces/http/models
+host: localhost:8080
+info:
+    description: '# User score calculation service'
+    title: scoreapp API
+    version: 1.0.0
+paths:
+    /health:
+        get:
+            description: Get application health status
+            operationId: getHealth
+            responses:
+                "200":
+                    $ref: '#/responses/healthResponse'
+                "405":
+                    $ref: '#/responses/errorResponse'
+                "500":
+                    $ref: '#/responses/errorResponse'
+            tags:
+                - health
+    /scores/calculate:
+        post:
+            description: Calculate user score based on stored actions
+            operationId: calculateScore
+            parameters:
+                - description: The ID of the user to calculate score for
+                  in: query
+                  name: user_id
+                  required: true
+                  type: string
+            responses:
+                "200":
+                    $ref: '#/responses/scoreResponse'
+                "400":
+                    $ref: '#/responses/errorResponse'
+                "404":
+                    $ref: '#/responses/errorResponse'
+                "500":
+                    $ref: '#/responses/errorResponse'
+            tags:
+                - scores
+produces:
+    - application/json
+responses:
+    errorResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/ErrorResponse'
+    healthResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/HealthResponse'
+    scoreResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/ScoreResponse'
+schemes:
+    - http
+    - https
+swagger: "2.0"
