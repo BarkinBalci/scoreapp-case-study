@@ -6,19 +6,6 @@ A user score calculation service built with Go, featuring clean architecture and
 [![CD](https://github.com/BarkinBalci/scoreapp-case-study/actions/workflows/cd.yml/badge.svg)](https://github.com/BarkinBalci/scoreapp-case-study/actions/workflows/cd.yml)
 ![Go](https://img.shields.io/badge/Go-1.25.4-00ADD8?logo=go)
 
-## Live Demo
- **Production:** [https://scoreapp.barkin.dev](https://scoreapp.barkin.dev)
-
-Try the API:
-```bash
-# Health check
-curl https://scoreapp.barkin.dev/health
-```
-```bash
-# Calculate score
-curl -X POST https://scoreapp.barkin.dev/scores/calculate?user_id=user_active
-```
-
 ## Prerequisites
 
 - Go 1.25+
@@ -29,10 +16,20 @@ curl -X POST https://scoreapp.barkin.dev/scores/calculate?user_id=user_active
 ```bash
 # Install dependencies
 go mod download
-
+```
+```bash
 # Start server
 make run
 ```
+```bash
+# Health check
+curl http://localhost:8080/health
+```
+```bash
+# Calculate score
+curl -X POST http://localhost:8080/scores/calculate?user_id=user_active
+```
+
 
 ## API Documentation
 
